@@ -1,0 +1,21 @@
+name: dart_script
+description: A sample command-line application.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  async:
+  dart_console:
+  glob:
+  path:
+  uuid:
+
+dev_dependencies:
+  lints:
+  test:
+
+executables:
+  dart_script:
