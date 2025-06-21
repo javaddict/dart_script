@@ -69,7 +69,9 @@ void main(List<String> arguments) {
       }
       _sourceMap[source] = rp;
     }
-    sourceMapFile.write(jsonEncode(_sourceMap), flush: true);
+    sourceMapFile
+      ..clear()
+      ..write(jsonEncode(_sourceMap), flush: true);
     // TODO: sources may not have a common root. In Windows, we use the drive letter as the root.
 
     final oldPackages = <(String, String)>{};
