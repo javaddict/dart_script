@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:dart_script/cli.dart';
 import 'package:path/path.dart';
@@ -31,12 +32,14 @@ void main(List<String> arguments) {
   final shadowProject = join(
     env['HOME'] ?? env['USERPROFILE'] ?? '',
     '.dart_script',
-    basenameWithoutExtension(mainSource.replaceAll(separator, '_')),
+    basenameWithoutExtension(
+      mainSource.replaceAll(separator, '_').replaceAll(':', ''),
+    ),
   );
   if (!shadowProject.exists()) {
     shadowProject.createDir();
   }
-  final sourceMapFile = join(shadowProject, 'source_map.txt');
+  final sourceMapFile = join(shadowProject, 'source_map.json');
   final pubspec = join(shadowProject, 'pubspec.yaml');
 
   bool isRebuild = false;
@@ -56,7 +59,6 @@ void main(List<String> arguments) {
         nearestRoot = dirname(nearestRoot);
       }
     }
-    sourceMapFile.clear();
     _sourceMap.clear();
     for (final source in _sources) {
       final rp = relative(source, from: nearestRoot);
@@ -65,10 +67,9 @@ void main(List<String> arguments) {
       if (!shadowSource.exists() || source.isNewerThan(shadowSource)) {
         source.copyTo(shadowSource);
       }
-      sourceMapFile.writeln('$source:$rp');
       _sourceMap[source] = rp;
     }
-    sourceMapFile.flush();
+    sourceMapFile.write(jsonEncode(_sourceMap), flush: true);
     // TODO: sources may not have a common root. In Windows, we use the drive letter as the root.
 
     final oldPackages = <(String, String)>{};
@@ -105,10 +106,8 @@ dependencies:''');
     print('[dart_script] First-time execution.');
     createProject();
   }
-  for (final s in sourceMapFile.readLines()) {
-    final p = s.split(':');
-    _sourceMap[p[0]] = p[1];
-  }
+  final jsonContent = File(sourceMapFile).readAsStringSync();
+  _sourceMap.addAll(Map<String, String>.from(jsonDecode(jsonContent)));
 
   final shadow = _sourceMap[mainSource]!;
   if (mainSource.isNewerThan(join(shadowProject, shadow))) {
