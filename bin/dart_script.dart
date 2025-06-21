@@ -108,7 +108,7 @@ dependencies:''');
     print('[dart_script] First-time execution.');
     createProject();
   }
-  final jsonContent = File(sourceMapFile).readAsStringSync();
+  final jsonContent = sourceMapFile.readLines().join();
   _sourceMap.addAll(Map<String, String>.from(jsonDecode(jsonContent)));
 
   final shadow = _sourceMap[mainSource]!;
