@@ -76,6 +76,8 @@ extension CommandParts on List<String> {
       workingDirectory: at ?? _workingDirectory,
       environment: env._map1,
       runInShell: runInShell,
+      stdoutEncoding: utf8,
+      stderrEncoding: utf8,
     );
     if (!forceSilent) {
       if (showMessages && r.stdout != '') {
@@ -276,13 +278,6 @@ final _lineTerminator = Platform.isWindows && env['SHELL'] != null
     ? '\n'
     : Platform.lineTerminator;
 
-final _fileCache = <String, File>{};
-
-File _getFile(String path) {
-  _fileCache[path] ??= File(path);
-  return _fileCache[path]!;
-}
-
 extension Path on String {
   bool isDirectory() => FileSystemEntity.isDirectorySync(this);
 
@@ -297,15 +292,15 @@ extension Path on String {
     // deleteSync() throws an exception if the file does not exist.
     if (exists()) {
       // [deleteSync] works on all [FileSystemEntity] types when [recursive] is true.
-      _getFile(this).deleteSync(recursive: true);
+      File(this).deleteSync(recursive: true);
     }
   }
 
-  List<String> readLines() => _getFile(this).readAsLinesSync();
+  List<String> readLines() => File(this).readAsLinesSync();
 
   void copyTo(String path) {
     if (isFile() || isLink()) {
-      _getFile(this).copySync(path);
+      File(this).copySync(path);
     } else if (isDirectory()) {
       _copyDirectory(Directory(this), Directory(path));
     }
@@ -328,7 +323,7 @@ extension Path on String {
 
   void moveTo(String path) {
     try {
-      _getFile(this).renameSync(path);
+      File(this).renameSync(path);
     } on FileSystemException {
       // This will work even when [path] is at a different drive.
       if (isFile()) {
@@ -343,7 +338,7 @@ extension Path on String {
 
   void clear() {
     if (isFile() || isLink()) {
-      _getFile(this).writeAsStringSync('', flush: true);
+      File(this).writeAsStringSync('', flush: true);
     } else if (isDirectory()) {
       Directory(this).listSync(recursive: true).forEach((entity) {
         // [deleteSync] works on all [FileSystemEntity] types when [recursive] is true.
@@ -352,17 +347,19 @@ extension Path on String {
     }
   }
 
-  void write(String s, {bool flush = false}) =>
-      _getFile(this).writeAsStringSync(s, mode: FileMode.append, flush: flush);
-
-  void writeln(String s, {String? newLine, bool flush = false}) =>
-      _getFile(this).writeAsStringSync(
-        '$s${newLine ?? _lineTerminator}',
-        mode: FileMode.append,
-        flush: flush,
+  void write(String s, {bool clearFirst = false}) =>
+      File(this).writeAsStringSync(
+        s,
+        mode: clearFirst ? FileMode.write : FileMode.append,
+        flush: true,
       );
 
-  void flush() => _getFile(this).flush();
+  void writeln(String s, {String? newLine, bool append = true}) =>
+      File(this).writeAsStringSync(
+        '$s${newLine ?? _lineTerminator}',
+        mode: append ? FileMode.append : FileMode.write,
+        flush: true,
+      );
 
   List<String> find(String glob) {
     final r = <String>[];
@@ -380,7 +377,7 @@ extension Path on String {
   }
 
   bool touch() {
-    final file = _getFile(this);
+    final file = File(this);
     if (Platform.isWindows) {
       try {
         if (file.existsSync()) {
@@ -402,14 +399,14 @@ extension Path on String {
     }
   }
 
-  DateTime get lastModified => _getFile(this).lastModifiedSync();
+  DateTime get lastModified => File(this).lastModifiedSync();
 
   bool isNewerThan(String other) => lastModified.isAfter(other.lastModified);
 
   bool isOlderThan(String other) => lastModified.isBefore(other.lastModified);
 
   void create() {
-    _getFile(this).createSync(recursive: true);
+    File(this).createSync(recursive: true);
   }
 
   void createDir() {
@@ -442,19 +439,18 @@ String? which(String program) {
 extension FileExt on File {
   void clear() => writeAsStringSync('');
 
-  void write(String s, {bool flush = false}) =>
-      writeAsStringSync(s, mode: FileMode.append, flush: flush);
+  void write(String s, {bool clearFirst = false}) => writeAsStringSync(
+    s,
+    mode: clearFirst ? FileMode.write : FileMode.append,
+    flush: true,
+  );
 
-  void writeln(String s, {String? newLine, bool flush = false}) =>
+  void writeln(String s, {String? newLine, bool clearFirst = false}) =>
       writeAsStringSync(
         '$s${newLine ?? _lineTerminator}',
-        mode: FileMode.append,
-        flush: flush,
+        mode: clearFirst ? FileMode.write : FileMode.append,
+        flush: true,
       );
-
-  void flush() {
-    writeAsStringSync('', mode: FileMode.append, flush: true);
-  }
 }
 
 final _lineTerminatorRegExp = RegExp('(?:\n|\r\n)');
@@ -495,7 +491,7 @@ String createTempFile({String? suffix}) {
   final f =
       '${join(Directory.systemTemp.path, _uuid.v4())}${suffix != null && suffix[0] != '.' ? '.' : ''}${suffix ?? ''}';
   _tempFiles.add(f);
-  _getFile(f).createSync();
+  File(f).createSync();
   return f;
 }
 

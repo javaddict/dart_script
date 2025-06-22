@@ -69,9 +69,7 @@ void main(List<String> arguments) {
       }
       _sourceMap[source] = rp;
     }
-    sourceMapFile
-      ..clear()
-      ..write(jsonEncode(_sourceMap), flush: true);
+    sourceMapFile.write(jsonEncode(_sourceMap), clearFirst: true);
     // TODO: sources may not have a common root. In Windows, we use the drive letter as the root.
 
     final oldPackages = <(String, String)>{};
@@ -97,7 +95,6 @@ dependencies:''');
       for (final (name, version, _) in _packages) {
         pubspec.writeln('  $name: $version');
       }
-      pubspec.flush();
       packagesChanged = true;
     }
 
