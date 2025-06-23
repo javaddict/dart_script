@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 
-import 'package:dart_script/cli.dart';
+import 'package:dart_cli/dart_cli.dart';
 import 'package:path/path.dart';
 
 final _sources = <String>{};

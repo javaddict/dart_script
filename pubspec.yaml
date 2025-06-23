@@ -8,6 +8,9 @@ environment:
 
 dependencies:
   async:
+  dart_cli:
+    git:
+      url: https://github.com/javaddict/dart_cli.git
   dart_console:
   glob:
   path:
