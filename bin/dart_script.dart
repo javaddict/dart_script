@@ -171,7 +171,6 @@ dependencies:''');
 
 final _import1 = RegExp('^import ["\']dart:.+["\'];\$');
 
-// TODO: how about "git:", "path:", etc.
 final _import2 = RegExp(
   '^import ["\']package:(.+)/.+\\.dart["\'].*;(?:\\s*//\\s*(.+))?\$',
 );
@@ -188,7 +187,8 @@ void _getProjectInfo(String file) {
     var m = _import2.firstMatch(line);
     if (m != null) {
       final name = m[1]!;
-      final version = m[2] ?? '';
+      final version =
+          m[2]?.replaceAll('>>', '\n      ').replaceAll('>', '\n    ') ?? '';
       _packages.add((name, version, source));
       continue;
     }
