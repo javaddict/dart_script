@@ -15,7 +15,7 @@ final dartSdkVersion = [
 ].run(showCommand: false, showMessages: false).output.split(' ')[3];
 
 void main(List<String> arguments) {
-  final parser = ArgParser()
+  final parser = ArgParser(allowTrailingOptions: false)
     ..addOption(
       'offline',
       help: 'Run in offline mode with specified pub cache path',
