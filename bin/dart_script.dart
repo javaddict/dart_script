@@ -194,7 +194,11 @@ dependencies:''');
     }
   }
 
-  ['dartaotruntime', snapshot].run(showCommand: false);
+  [
+    'dartaotruntime',
+    snapshot,
+    ...positionalArgs.skip(1),
+  ].run(showCommand: false);
 }
 
 final _import1 = RegExp('^import ["\']dart:.+["\'];\$');
