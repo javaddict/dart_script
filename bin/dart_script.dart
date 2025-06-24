@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:args/args.dart';
 import 'package:dart_cli/dart_cli.dart';
 import 'package:path/path.dart';
 
@@ -14,7 +15,30 @@ final dartSdkVersion = [
 ].run(showCommand: false, showMessages: false).output.split(' ')[3];
 
 void main(List<String> arguments) {
-  final script = arguments.first;
+  final parser = ArgParser()
+    ..addOption(
+      'offline',
+      help: 'Run in offline mode with specified pub cache path',
+    );
+
+  final ArgResults results;
+  try {
+    results = parser.parse(arguments);
+  } catch (e) {
+    stderr.writeln('Error parsing arguments: $e');
+    stderr.writeln(parser.usage);
+    exit(1);
+  }
+
+  final localPubCache = results['offline'] as String?;
+  final positionalArgs = results.rest;
+
+  if (positionalArgs.isEmpty) {
+    stderr.writeln('Usage: dart_script [--offline <path>] <script.dart>');
+    exit(1);
+  }
+
+  final script = positionalArgs.first;
   if (!script.exists()) {
     stderr.writeln('"$script" does not exist.');
     exit(1);
@@ -138,10 +162,14 @@ dependencies:''');
 
     if (packagesChanged) {
       print('[dart_script] Import packages.');
+      if (localPubCache != null) {
+        env['PUB_CACHE'] = localPubCache;
+      }
       final r = [
         'dart',
         'pub',
         'get',
+        if (localPubCache != null) '--offline',
       ].run(at: shadowProject, showCommand: false, showMessages: false);
       if (!r.ok) {
         stderr.writeln('[dart_script] Failed to import packages.');
