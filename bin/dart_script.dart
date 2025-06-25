@@ -194,12 +194,12 @@ dependencies:''');
     }
   }
 
-  await [
+  final r = await [
     'dartaotruntime',
     snapshot,
     ...positionalArgs.skip(1),
   ].running(showCommand: false, interactive: true);
-  exit(0); // This is necessary if interactive is true
+  exit(r.exitCode); // This is necessary if interactive is true
 }
 
 final _import1 = RegExp('^import ["\']dart:.+["\'];\$');
