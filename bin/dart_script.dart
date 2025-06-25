@@ -108,22 +108,31 @@ void main(List<String> arguments) async {
       var i = 0;
       for (; i < lines.length && lines[i] != 'dependencies:'; i++) {}
       for (++i; i < lines.length; i++) {
-        if (lines[i].startsWith('    ')) continue;
-        final p = lines[i].split(':');
-        oldPackages.add((p[0].trim(), p[1].trim()));
+        var line = lines[i];
+        while (i + 1 < lines.length && lines[i + 1].startsWith('    ')) {
+          line += '\n${lines[i + 1]}';
+        }
+        line.replaceAll('\n      ', '>>');
+        line.replaceAll('\n    ', '>');
+        final j = line.indexOf(':');
+        oldPackages.add((
+          line.substring(0, j).trim(),
+          line.substring(j + 1).trim(),
+        ));
       }
     }
 
     // Compare packages and update pubspec.yaml only if changed
-    if (!(_packages.length == oldPackages.length &&
-        _packages.containsAll(oldPackages) &&
-        oldPackages.containsAll(_packages))) {
+    final newPackages = _packages.map((e) => (e.$1, e.$2)).toSet();
+    if (!(newPackages.length == oldPackages.length &&
+        newPackages.containsAll(oldPackages) &&
+        oldPackages.containsAll(newPackages))) {
       pubspec.clear();
       pubspec.writeln('''name: ${basenameWithoutExtension(mainSource)}
 environment:
   sdk: ^$dartSdkVersion
 dependencies:''');
-      for (final (name, version, _) in _packages) {
+      for (final (name, version) in newPackages) {
         pubspec.writeln('  $name: $version');
       }
       packagesChanged = true;
