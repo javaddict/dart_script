@@ -194,12 +194,10 @@ dependencies:''');
     }
   }
 
-  final r = await [
-    'dartaotruntime',
+  await Process.start('dartaotruntime', [
     snapshot,
     ...positionalArgs.skip(1),
-  ].running(showCommand: false, interactive: true);
-  exit(r.exitCode); // This is necessary if interactive is true
+  ], mode: ProcessStartMode.detached);
 }
 
 final _import1 = RegExp('^import ["\']dart:.+["\'];\$');
