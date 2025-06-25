@@ -38,7 +38,7 @@ void main(List<String> arguments) async {
     exit(1);
   }
 
-  final script = positionalArgs.first;
+  final script = positionalArgs.removeAt(0);
   if (!script.exists()) {
     stderr.writeln('"$script" does not exist.');
     exit(1);
@@ -194,9 +194,10 @@ dependencies:''');
     }
   }
 
-  // There should be a shell script to run this command.
-  print(
-    'dartaotruntime $snapshot ${positionalArgs.skip(1).toList().concatenate()}',
+  final cmdFile = positionalArgs.removeLast();
+  cmdFile.write(
+    'dartaotruntime $snapshot ${positionalArgs.concatenate()}',
+    clearFirst: true,
   );
 }
 
