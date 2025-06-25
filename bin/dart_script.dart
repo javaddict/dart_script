@@ -194,10 +194,10 @@ dependencies:''');
     }
   }
 
-  await Process.start('dartaotruntime', [
-    snapshot,
-    ...positionalArgs.skip(1),
-  ], mode: ProcessStartMode.detached);
+  // There should be a shell script to run this command.
+  print(
+    'dartaotruntime $snapshot ${positionalArgs.skip(1).toList().concatenate()}',
+  );
 }
 
 final _import1 = RegExp('^import ["\']dart:.+["\'];\$');
