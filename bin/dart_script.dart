@@ -14,7 +14,7 @@ final dartSdkVersion = [
   '--version',
 ].run(showCommand: false, showMessages: false).output.split(' ')[3];
 
-void main(List<String> arguments) {
+void main(List<String> arguments) async {
   final parser = ArgParser(allowTrailingOptions: false)
     ..addOption(
       'offline',
@@ -194,11 +194,12 @@ dependencies:''');
     }
   }
 
-  [
+  await [
     'dartaotruntime',
     snapshot,
     ...positionalArgs.skip(1),
-  ].run(showCommand: false);
+  ].running(showCommand: false, interactive: true);
+  exit(0); // This is necessary if interactive is true
 }
 
 final _import1 = RegExp('^import ["\']dart:.+["\'];\$');
