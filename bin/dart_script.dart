@@ -31,7 +31,7 @@ void main(List<String> arguments) async {
   }
 
   final localPubCache = results['offline'] as String?;
-  final positionalArgs = results.rest;
+  final positionalArgs = List<String>.from(results.rest);
 
   if (positionalArgs.isEmpty) {
     stderr.writeln('Usage: dart_script [--offline <path>] <script.dart>');
