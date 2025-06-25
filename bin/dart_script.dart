@@ -19,6 +19,10 @@ void main(List<String> arguments) async {
     ..addOption(
       'offline',
       help: 'Run in offline mode with specified pub cache path',
+    )
+    ..addOption(
+      'command-output',
+      help: 'Path to the file where the command output will be written',
     );
 
   final ArgResults results;
@@ -34,7 +38,9 @@ void main(List<String> arguments) async {
   final positionalArgs = List<String>.from(results.rest);
 
   if (positionalArgs.isEmpty) {
-    stderr.writeln('Usage: dart_script [--offline <path>] <script.dart>');
+    stderr.writeln(
+      'Usage: dart_script [--offline <path>] [--command-output <path>] <script.dart>',
+    );
     exit(1);
   }
 
@@ -102,8 +108,9 @@ void main(List<String> arguments) async {
       var i = 0;
       for (; i < lines.length && lines[i] != 'dependencies:'; i++) {}
       for (++i; i < lines.length; i++) {
-        final p = lines[i].trim().split(': ');
-        oldPackages.add((p[0], p[1]));
+        if (lines[i].startsWith('    ')) continue;
+        final p = lines[i].split(':');
+        oldPackages.add((p[0].trim(), p[1].trim()));
       }
     }
 
@@ -194,11 +201,21 @@ dependencies:''');
     }
   }
 
-  final cmdFile = positionalArgs.removeLast();
-  cmdFile.write(
-    'dartaotruntime $snapshot ${positionalArgs.concatenate()}',
-    clearFirst: true,
-  );
+  final commandOutputPath = results['command-output'] as String?;
+  if (commandOutputPath != null) {
+    final cmdFile = commandOutputPath;
+    cmdFile.write(
+      'dartaotruntime $snapshot ${positionalArgs.concatenate()}',
+      clearFirst: true,
+    );
+  } else {
+    final r = await [
+      'dartaotruntime',
+      snapshot,
+      ...positionalArgs,
+    ].running(showCommand: false, interactive: true);
+    exit(r.exitCode); // This is necessary if interactive is true
+  }
 }
 
 final _import1 = RegExp('^import ["\']dart:.+["\'];\$');
