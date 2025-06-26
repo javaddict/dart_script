@@ -113,13 +113,9 @@ void main(List<String> arguments) async {
           line += '\n${lines[i + 1]}';
           lines.removeAt(i + 1);
         }
-        line.replaceAll('\n      ', '>>');
-        line.replaceAll('\n    ', '>');
-        final j = line.indexOf(':');
-        oldPackages.add((
-          line.substring(0, j).trim(),
-          line.substring(j + 1).trim(),
-        ));
+        line = line.replaceAll('\n      ', '>>').replaceAll('\n    ', '>');
+        final j = line.indexOf(': ');
+        oldPackages.add((line.substring(2, j), line.substring(j + 2)));
       }
     }
 
@@ -134,7 +130,9 @@ environment:
   sdk: ^$dartSdkVersion
 dependencies:''');
       for (final (name, version) in newPackages) {
-        pubspec.writeln('  $name: $version');
+        pubspec.writeln(
+          '  $name: ${version.replaceAll('>>', '\n      ').replaceAll('>', '\n    ')}',
+        );
       }
       packagesChanged = true;
     }
@@ -246,8 +244,7 @@ void _getProjectInfo(String file) {
     var m = _import2.firstMatch(line);
     if (m != null) {
       final name = m[1]!;
-      final version =
-          m[2]?.replaceAll('>>', '\n      ').replaceAll('>', '\n    ') ?? '';
+      final version = m[2] ?? '';
       _packages.add((name, version, source));
       continue;
     }
