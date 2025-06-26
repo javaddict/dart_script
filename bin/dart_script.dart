@@ -111,6 +111,7 @@ void main(List<String> arguments) async {
         var line = lines[i];
         while (i + 1 < lines.length && lines[i + 1].startsWith('    ')) {
           line += '\n${lines[i + 1]}';
+          lines.removeAt(i + 1);
         }
         line.replaceAll('\n      ', '>>');
         line.replaceAll('\n    ', '>');
