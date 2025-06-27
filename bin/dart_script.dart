@@ -23,6 +23,11 @@ void main(List<String> arguments) async {
     ..addOption(
       'command-output',
       help: 'Path to the file where the command output will be written',
+    )
+    ..addFlag(
+      'reset',
+      abbr: 'r',
+      help: 'Clear the cache (of the script instead specified)',
     );
 
   final ArgResults results;
@@ -35,12 +40,21 @@ void main(List<String> arguments) async {
   }
 
   final localPubCache = results['offline'] as String?;
+  final isReset = results['reset'] as bool;
   final positionalArgs = List<String>.from(results.rest);
 
+  final dartScriptDir = join(
+    env['HOME'] ?? env['USERPROFILE'] ?? '',
+    '.dart_script',
+  );
   if (positionalArgs.isEmpty) {
-    stderr.writeln(
-      'Usage: dart_script [--offline <path>] [--command-output <path>] <script.dart>',
-    );
+    if (isReset) {
+      dartScriptDir.clear();
+    } else {
+      stderr.writeln(
+        'Usage: dart_script [--offline <path>] [--command-output <path>] [--reset/-r] <script.dart>',
+      );
+    }
     exit(1);
   }
 
@@ -60,12 +74,17 @@ void main(List<String> arguments) async {
   final mainSource = canonicalize(script);
 
   final shadowProject = join(
-    env['HOME'] ?? env['USERPROFILE'] ?? '',
-    '.dart_script',
+    dartScriptDir,
     basenameWithoutExtension(
       mainSource.replaceAll(separator, '_').replaceAll(':', ''),
     ),
   );
+
+  if (isReset) {
+    shadowProject.delete();
+    exit(0);
+  }
+
   if (!shadowProject.exists()) {
     shadowProject.createDir();
   }
