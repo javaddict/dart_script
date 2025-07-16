@@ -21,6 +21,10 @@ void main(List<String> arguments) async {
       help: 'Run in offline mode with specified pub cache path',
     )
     ..addOption(
+      'cache',
+      help: 'Where .dart_script is stored. The default is \$HOME.',
+    )
+    ..addOption(
       'command-output',
       help: 'Path to the file where the command output will be written',
     )
@@ -44,7 +48,7 @@ void main(List<String> arguments) async {
   final positionalArgs = List<String>.from(results.rest);
 
   final dartScriptDir = join(
-    env['HOME'] ?? env['USERPROFILE'] ?? '',
+    results['cache'] ?? env['HOME'] ?? env['USERPROFILE'] ?? '',
     '.dart_script',
   );
   if (positionalArgs.isEmpty) {
